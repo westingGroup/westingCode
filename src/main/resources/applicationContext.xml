@@ -207,4 +207,5 @@
 		factory-method="getManagementService" />
 	<!-- Activiti end -->
 
+    <import resource="classpath:spring-config-shiro.xml"/>
 </beans>
