@@ -9,32 +9,45 @@
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.2.xsd
 		http://cocoon.apache.org/schema/configurator http://cocoon.apache.org/schema/configurator/cocoon-configurator-1.0.1.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd
-		http://www.springframework.org/schema/tx  http://www.springframework.org/schema/tx/spring-tx-3.2.xsd">
+		http://www.springframework.org/schema/tx  http://www.springframework.org/schema/tx/spring-tx-3.2.xsd
+		">
 	<mvc:annotation-driven />
 	<context:annotation-config />
 	<context:component-scan base-package="com" />
 	<!-- <import resource="applicationContext-services.xml" /> -->
 	<!-- <import resource="applicationContext-jobs.xml" /> -->
 
+	<context:property-placeholder location="classpath:resources.properties"/>
+	
+    <mvc:annotation-driven>
+        <mvc:argument-resolvers>
+            <bean class="com.infosys.westing.commerce.shiro.bind.method.CurrentUserMethodArgumentResolver"/>
+        </mvc:argument-resolvers>
+    </mvc:annotation-driven>
+    
 	<bean id="dataSource"
 		class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
 		<property name="driverClassName">
 			<value>org.gjt.mm.mysql.Driver</value>
 		</property>
 		<property name="url">
-			<value>jdbc:mysql://127.0.0.1:3306/westing_comm?useUnicode=true&amp;characterEncoding=UTF-8</value>
+			<value>${connection.url}</value>
 		</property>
 		<property name="username">
-			<value>root</value>
+			<value>${connection.username}</value>
 		</property>
 		<property name="password">
-			<value>root</value>
+			<value>${connection.password}</value>
 		</property>
 		<property name="maxActive" value="20" />
 		<property name="maxIdle" value="10" />
 		<property name="defaultAutoCommit" value="false" />
 	</bean>
 
+   <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+       <property name="dataSource" ref="dataSource"></property>
+    </bean>
+    
 	<bean id="sessionFactory"
 		class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
 		<!-- 注入数据源 -->
@@ -87,7 +100,7 @@
 	<mvc:resources mapping="/ueditor/**" location="/ueditor/" />
 	<mvc:resources mapping="/easyui_themes/**" location="/easyui_themes/" />
 	<mvc:resources mapping="/bootstrap-datetimepicker/**" location="/bootstrap-datetimepicker/" />
-	
+	<mvc:resources mapping="/static/**" location="/WEB-INF/static/"/>
 	<!-- springMVC 中文乱码 -->
 <bean  
     class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter">  
@@ -206,6 +219,8 @@
 	<bean id="managementService" factory-bean="processEngine"
 		factory-method="getManagementService" />
 	<!-- Activiti end -->
+	
 
-    <!-- <import resource="classpath:spring-config-shiro.xml"/>  test sss-->
+    
+    <import resource="classpath:spring-config-shiro.xml"/>
 </beans>
