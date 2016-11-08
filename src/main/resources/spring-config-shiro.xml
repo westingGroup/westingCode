@@ -141,6 +141,7 @@
         <property name="securityManager" ref="securityManager"/>
     </bean>
     
+    <bean class="com.infosys.westing.commerce.shiro.spring.SpringUtils"/>
  
 
 </beans>
