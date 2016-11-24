@@ -2,7 +2,6 @@ package com.infosys.westing.commerce.controller.demo;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipInputStream;
 
-import javax.annotation.Resource;
 import javax.inject.Inject;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletResponse;
@@ -29,7 +27,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.infosys.westing.commerce.dao.demo.IDemoDao;
 import com.infosys.westing.commerce.entity.demo.DemoEntity;
 import com.infosys.westing.commerce.service.demo.IDemoService;
 import com.infosys.westing.commerce.service.workflow.IWorkFlowService;
