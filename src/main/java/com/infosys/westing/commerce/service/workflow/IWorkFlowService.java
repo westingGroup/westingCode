@@ -1,9 +1,19 @@
 package com.infosys.westing.commerce.service.workflow;
 
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
+
+import org.springframework.web.multipart.MultipartFile;
+
+import com.infosys.westing.commerce.dto.workflow.ProcessDefDto;
+import com.infosys.westing.commerce.dto.workflow.ProcessInstanceDto;
+import com.infosys.westing.commerce.dto.workflow.TaskDto;
+import com.infosys.westing.commerce.model.PagerInfo;
+import com.infosys.westing.commerce.model.workflow.ProcessDefModel;
 
 
 public interface IWorkFlowService {
@@ -28,7 +38,7 @@ public interface IWorkFlowService {
 	 * 
 	 * @param 
 	 */
-	public String startWorkflow(String bussinessName,String businessKey, String userId,
+	public String startWorkflow(String processDefinitionKey,String businessKey, String userId,
 			Map<String, Object> variables);
 	
 	
@@ -55,7 +65,7 @@ public interface IWorkFlowService {
 	  * @param taskId
 	  * @param userId
 	  */
-	 public void delegateTaskCandidate(String taskId, String delegate, String userId, Map<String,Object> variable);
+	 public void delegateTaskCandidate(String taskId, String owner, String delegate, Map<String,Object> variable);
 	 
 	 /**
 	  * 根据taskId获得processInstanceId
@@ -179,5 +189,61 @@ public interface IWorkFlowService {
 		 * 按公司、人员、流程进行流程转移配置
 		 */
 		public void delegateHuaToStepTwo(String companyId, String processInstanceId);
-
+		
+		/**
+		 * 部署文件信息
+		 * @param workflowFile流程文件
+		 */
+		public void deployFlow(MultipartFile workflowFile) throws IOException;
+		
+		/**
+		 * 根据查询条件查询到当前页的流程定义信息
+		 * @param processDefModel
+		 * @return
+		 */
+		public PagerInfo<ProcessDefDto> queryProcessDefPage(ProcessDefModel processDefModel)
+				throws IllegalAccessException, InvocationTargetException;
+		
+		/**
+		 * 根据查询条件查询当前页的当前key的流程定义信息
+		 * @param processDefModel
+		 * @return
+		 */
+		public PagerInfo<ProcessDefDto> queryProcessVersionPage(ProcessDefModel processDefModel)
+			 throws IllegalAccessException, InvocationTargetException ;
+		
+		/**
+		 * 根据流程定义id暂停流程定义信息
+		 * @param workflowDefId流程定义id
+		 */
+		public void pauseWorkflowDef(String workflowDefId);
+		
+		/**
+		 * 根据流程定义id恢复流程定义信息
+		 * @param workflowDefId流程定义id
+		 */
+		public void recoveryWorkflowDef(String workflowDefId);
+		
+		/**
+		 * 根据条件查询需要执行的任务信息
+		 * @param userId用户id
+		 * @param currPage第一页
+		 * @param PageSize最后一页
+		 * @return
+		 */
+		public PagerInfo<TaskDto> findTodoTasks(String userId, long currPage, long PageSize);
+		
+		/**
+		 * 查询所有的流程实例
+		 * @return
+		 */
+		public PagerInfo<ProcessInstanceDto> queryWorkflowInstPager(String processDefKey, 
+				String type, long currPage, long pageSize);
+		
+		/**
+		 * 接受任务
+		 * @param userId用户id
+		 * @param taskId用户任务id
+		 */
+		public void receiveTask(String userId, String taskId);
 }

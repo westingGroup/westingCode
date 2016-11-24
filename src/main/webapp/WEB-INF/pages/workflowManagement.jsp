@@ -33,7 +33,6 @@
     	var realpath = document.selection.createRange().text;    
     	alert(realpath); */
      	var fileName = getFullPath(obj);
-  		
     	$.post("<%=request.getContextPath()%>/demo/deployFlow", 
     			{ "fileName": fileName }, 
     			function (data) { 

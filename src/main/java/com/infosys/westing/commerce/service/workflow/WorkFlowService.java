@@ -1,14 +1,14 @@
 package com.infosys.westing.commerce.service.workflow;
 
+import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.ZipInputStream;
 
 import javax.annotation.Resource;
 
@@ -16,42 +16,42 @@ import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.engine.FormService;
 import org.activiti.engine.HistoryService;
 import org.activiti.engine.IdentityService;
+import org.activiti.engine.ManagementService;
 import org.activiti.engine.RepositoryService;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.history.HistoricProcessInstance;
-import org.activiti.engine.history.HistoricTaskInstance;
 import org.activiti.engine.history.HistoricVariableInstance;
 import org.activiti.engine.impl.RepositoryServiceImpl;
-//import org.activiti.engine.impl.bpmn.diagram.ProcessDiagramGenerator;
-import org.activiti.engine.impl.bpmn.diagram.ProcessDiagramLayoutFactory;
 import org.activiti.engine.impl.context.Context;
-import org.activiti.engine.impl.el.JuelExpression;
-import org.activiti.engine.impl.el.UelExpressionCondition;
-import org.activiti.engine.impl.javax.el.ValueExpression;
-import org.activiti.engine.impl.juel.TreeValueExpression;
 import org.activiti.engine.impl.persistence.entity.ExecutionEntity;
 import org.activiti.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.activiti.engine.impl.pvm.PvmTransition;
-import org.activiti.engine.impl.pvm.delegate.ActivityExecution;
 import org.activiti.engine.impl.pvm.process.ActivityImpl;
 import org.activiti.engine.impl.pvm.process.TransitionImpl;
+import org.activiti.engine.repository.Deployment;
 import org.activiti.engine.repository.ProcessDefinition;
 import org.activiti.engine.repository.ProcessDefinitionQuery;
-import org.activiti.engine.runtime.Execution;
 import org.activiti.engine.runtime.ProcessInstance;
-import org.activiti.engine.task.Comment;
+import org.activiti.engine.task.DelegationState;
 import org.activiti.engine.task.Task;
 import org.activiti.engine.task.TaskQuery;
-import org.activiti.engine.delegate.DelegateExecution;
-import org.activiti.engine.delegate.DelegateTask;
-import org.activiti.engine.delegate.Expression;
 import org.activiti.spring.ProcessEngineFactoryBean;
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
-import com.infosys.westing.commerce.service.workflow.IWorkFlowService;
+import com.infosys.westing.commerce.dto.workflow.ProcessDefDto;
+import com.infosys.westing.commerce.dto.workflow.ProcessInstanceDto;
+import com.infosys.westing.commerce.dto.workflow.TaskDto;
+import com.infosys.westing.commerce.model.PagerInfo;
+import com.infosys.westing.commerce.model.workflow.ProcessDefModel;
+import com.infosys.westing.commerce.util.DateUtil;
+//import org.activiti.engine.impl.bpmn.diagram.ProcessDiagramGenerator;
 
 
 
@@ -72,6 +72,8 @@ public class WorkFlowService implements IWorkFlowService {
 	@Resource protected IdentityService identityService;
 	
 	@Resource protected FormService formService;
+	
+	@Resource protected ManagementService managementService;
 	
 
 	
@@ -147,13 +149,13 @@ public class WorkFlowService implements IWorkFlowService {
 		return imageStream;
 	}
 	
-	public String startWorkflow( String definitionName,String businessKey, String userId,
+	public String startWorkflow( String processDefinitionKey,String businessKey, String userId,
 			Map<String, Object> variables) {
 
 		// 用来设置启动流程的人员ID，引擎会自动把用户ID保存到activiti:initiator中
 		identityService.setAuthenticatedUserId(userId);
 	
-		ProcessInstance processInstance = runtimeService.startProcessInstanceByKey(definitionName, businessKey, variables);
+		ProcessInstance processInstance = runtimeService.startProcessInstanceByKey(processDefinitionKey, businessKey, variables);
 		String processInstanceId = processInstance.getId();
 		//entity.setProcessInstanceId(processInstanceId);
 		return processInstanceId;
@@ -228,14 +230,13 @@ public class WorkFlowService implements IWorkFlowService {
 			 
 		//2. 把任务给代理人
 		if(delegateFlag){
-/*			String delegate = (String)taskService.getVariableLocal(taskId, "delegate");
-			String receiver =  (String)taskService.getVariableLocal(taskId, "commissioned");
-			taskService.delegateTask(taskId, delegate);
+			taskService.resolveTask(taskId);
 			//将代理任务删除
 			taskService.setVariableLocal(taskId, "delegateFlag", false);
 			//添加代理的行为日志
-			Task task  = taskService.createTaskQuery().taskId(taskId).singleResult();
-			
+			/*Task task  = taskService.createTaskQuery().taskId(taskId).singleResult();
+			String owner = (String)taskService.getVariableLocal(taskId, "owner");
+			String receiver =  (String)taskService.getVariableLocal(taskId, "delegate");
 			WorkFlowActionLog wfaLog =  new WorkFlowActionLog();
 			wfaLog.setProcessInstanceId(task.getProcessInstanceId());
 			wfaLog.setTaskId(taskId);
@@ -296,15 +297,15 @@ public class WorkFlowService implements IWorkFlowService {
 	 * @param taskId
 	 * @param userId
 	 */
-	public void delegateTaskCandidate(String taskId, String delegate, String userId, Map<String,Object> variable){
-/*		//1.流程任务设置代理标志  
+	public void delegateTaskCandidate(String taskId, String owner, String delegate, Map<String,Object> variable){
+		//1.流程任务设置代理标志  
 		taskService.setVariableLocal(taskId, "delegateFlag", true);//  放代理标志
-		taskService.setVariableLocal(taskId, "delegate", delegate);//  委托人
-		taskService.setVariableLocal(taskId, "commissioned", userId);//  被委托人
+		taskService.setVariableLocal(taskId, "owner", owner);//  委托人
+		taskService.setVariableLocal(taskId, "delegate", delegate);//  被委托人
 		//2.代理
-		taskService.delegateTask(taskId, userId);
+		taskService.delegateTask(taskId, delegate);
 		//3.workFlowActionLogService添加记录
-		WorkFlowActionLog wfaLog =  new WorkFlowActionLog();
+		/*WorkFlowActionLog wfaLog =  new WorkFlowActionLog();
 		
 		String processInstanceId = this.getProcessInstanceIdByTaskId(taskId);
 		wfaLog.setProcessInstanceId(processInstanceId);
@@ -653,4 +654,260 @@ public class WorkFlowService implements IWorkFlowService {
 			taskService.delegateTask(taskId, "0000015");		
 		}*/	//代理不考虑
 	}
+
+	@Override
+	public void deployFlow(MultipartFile workflowFile) throws IOException {
+		String fileName = workflowFile.getOriginalFilename();
+		String extension = FilenameUtils.getExtension(fileName);
+		if(extension.equals("bar") || extension.equals("zip")){
+			ZipInputStream zipInputStream = new ZipInputStream(workflowFile.getInputStream());
+			repositoryService.createDeployment().addZipInputStream(zipInputStream).deploy();
+		}else{
+			repositoryService.createDeployment().addInputStream(fileName, workflowFile.getInputStream()).deploy();
+		}		
+	}
+
+	/**
+	 * 查询当前页的流程定义最新版本
+	 * @param processDefModel
+	 * @return
+	 * @throws IllegalAccessException
+	 * @throws InvocationTargetException
+	 */
+	@Override
+	public PagerInfo<ProcessDefDto> queryProcessDefPage(
+			ProcessDefModel processDefModel) throws IllegalAccessException, InvocationTargetException {
+		List<ProcessDefDto> processDefDtoList = new ArrayList<ProcessDefDto>();
+		PagerInfo<ProcessDefDto> pagerInfo = processDefModel.getPager();
+		long count = queryProcessDefCount(processDefModel);
+		List<ProcessDefinition> processDefinitionList = queryProcessDefList(processDefModel, 
+				pagerInfo.getFirstResult().intValue(), pagerInfo.getMaxResult().intValue());
+		
+		for (ProcessDefinition processDefinition : processDefinitionList)
+			processDefDtoList.add(processDefToDto(processDefinition));
+		pagerInfo.setTotalRecords(count);
+		pagerInfo.setRecords(processDefDtoList);
+		pagerInfo.setTotalPage(pagerInfo.getTotalPages());
+		return pagerInfo;
+	}
+	
+	/**
+	 * 查询最新版本的流程定义的数目
+	 * @param processDefModel查询条件
+	 * @return
+	 */
+	private long queryProcessDefCount(ProcessDefModel processDefModel){
+		ProcessDefinitionQuery processDefinitionQuery = repositoryService.createProcessDefinitionQuery();
+		if(StringUtils.isNotBlank(processDefModel.getProcessKey()))
+			processDefinitionQuery = processDefinitionQuery.processDefinitionKeyLike("%"+processDefModel.getProcessKey()+"%");
+		return processDefinitionQuery.latestVersion().count();
+	}
+	
+	/**
+	 * 获取当前页的最新版本的流程定义
+	 * @param processDefModel查询条件
+	 * @param firstResult第一条记录
+	 * @param maxResult最后一条记录
+	 * @return
+	 */
+	private List<ProcessDefinition> queryProcessDefList(ProcessDefModel processDefModel,
+			int firstResult, int maxResult){
+		ProcessDefinitionQuery processDefinitionQuery = repositoryService.createProcessDefinitionQuery();
+		if(StringUtils.isNotBlank(processDefModel.getProcessKey()))
+			processDefinitionQuery = processDefinitionQuery.processDefinitionKeyLike("%"+processDefModel.getProcessKey()+"%");
+		List<ProcessDefinition> processDefinitionList = processDefinitionQuery.orderByDeploymentId().desc()
+				.latestVersion().listPage(firstResult, maxResult);
+		return processDefinitionList;
+	}
+	
+	/**
+	 * 从ProcessDefinition转换为dto
+	 * @param processDefinition流程定义
+	 * @return
+	 * @throws InvocationTargetException 
+	 * @throws IllegalAccessException 
+	 */
+	private ProcessDefDto processDefToDto(ProcessDefinition processDefinition) 
+			throws IllegalAccessException, InvocationTargetException{
+		ProcessDefDto processDefDto = new ProcessDefDto();
+		BeanUtils.copyProperties(processDefDto, processDefinition);
+		
+		Deployment deployment = getDeploymentById(processDefinition.getDeploymentId());
+		if(deployment.getDeploymentTime() != null)
+			processDefDto.setDeploymentTime(DateUtil.format(deployment.getDeploymentTime(), "yyyy-MM-dd"));
+		return processDefDto;
+	}
+	
+	/**
+	 * 根据部署id获取部署信息
+	 * @param deploymentId
+	 * @return
+	 */
+	private Deployment getDeploymentById(String deploymentId){
+		return repositoryService.createDeploymentQuery().deploymentId(deploymentId).singleResult();
+	}
+
+	/**
+	 * 根据查询条件查询当前页的当前key的流程定义信息
+	 * @throws InvocationTargetException 
+	 * @throws IllegalAccessException 
+	 */
+	@Override
+	public PagerInfo<ProcessDefDto> queryProcessVersionPage(
+			ProcessDefModel processDefModel) throws IllegalAccessException, InvocationTargetException {
+		List<ProcessDefDto> processDefDtoList = new ArrayList<ProcessDefDto>();
+		PagerInfo<ProcessDefDto> pagerInfo = processDefModel.getPager();
+		long count = queryProcessVersionCount(processDefModel);
+		List<ProcessDefinition> processDefinitionList = queryProcessVersionList(processDefModel, 
+				pagerInfo.getFirstResult().intValue(), pagerInfo.getMaxResult().intValue());
+		
+		for (ProcessDefinition processDefinition : processDefinitionList)
+			processDefDtoList.add(processDefToDto(processDefinition));
+		pagerInfo.setTotalRecords(count);
+		pagerInfo.setRecords(processDefDtoList);
+		pagerInfo.setTotalPage(pagerInfo.getTotalPages());
+		return pagerInfo;
+	}
+	
+	/**
+	 * 查询当前key下的流程版本数目
+	 * @param processDefModel流程定义model
+	 * @return
+	 */
+	public long queryProcessVersionCount(ProcessDefModel processDefModel){
+		ProcessDefinitionQuery processDefinitionQuery = repositoryService.createProcessDefinitionQuery();
+		if(StringUtils.isNotBlank(processDefModel.getProcessKey()))
+			processDefinitionQuery = processDefinitionQuery.processDefinitionKeyLike("%"+processDefModel.getProcessKey()+"%");
+		if(StringUtils.isNotBlank(processDefModel.getProcessName()))
+			processDefinitionQuery = processDefinitionQuery.processDefinitionNameLike("%"+processDefModel.getProcessName()+"%");
+		return processDefinitionQuery.count();
+	}
+	
+	/**
+	 * 查询当前key下当前页的流程版本列表
+	 * @param processDefModel流程定义model
+	 * @param firstResult第一条记录
+	 * @param maxResult最后一条记录
+	 * @return
+	 */
+	public List<ProcessDefinition> queryProcessVersionList(ProcessDefModel processDefModel, int firstResult, int maxResult){
+		ProcessDefinitionQuery processDefinitionQuery = repositoryService.createProcessDefinitionQuery();
+		if(StringUtils.isNotBlank(processDefModel.getProcessKey()))
+			processDefinitionQuery = processDefinitionQuery.processDefinitionKeyLike("%"+processDefModel.getProcessKey()+"%");
+		if(StringUtils.isNotBlank(processDefModel.getProcessName()))
+			processDefinitionQuery = processDefinitionQuery.processDefinitionNameLike("%"+processDefModel.getProcessName()+"%");
+		List<ProcessDefinition> processDefinitionList = processDefinitionQuery.orderByProcessDefinitionVersion()
+				.desc().listPage(firstResult, maxResult);
+		return processDefinitionList;
+	}
+
+	/**
+	 * 根据流程定义id暂停流程定义
+	 */
+	@Override
+	public void pauseWorkflowDef(String workflowDefId) {
+		repositoryService.suspendProcessDefinitionById(workflowDefId);
+	}
+
+	/**
+	 * 根据流程定义id恢复流程定义
+	 */
+	@Override
+	public void recoveryWorkflowDef(String workflowDefId) {
+		repositoryService.activateProcessDefinitionById(workflowDefId);
+	}
+
+	/**
+	 * 查找需要执行的业务
+	 * @param userId用户id
+	 * @param currPage当前页
+	 * @param pageSize每页的记录条数
+	 * @return
+	 */
+	@Override
+	public PagerInfo<TaskDto> findTodoTasks(String userId, long currPage, long pageSize){
+		PagerInfo<TaskDto> taskPager = new PagerInfo<TaskDto>();
+		taskPager.setCurrentPage(currPage);
+		taskPager.setPageSize(pageSize);
+		
+		List<TaskDto> taskDtoList = new ArrayList<TaskDto>();
+		long count = taskService.createTaskQuery().taskCandidateOrAssigned(userId).count();
+		List<Task> taskList = taskService.createTaskQuery().taskCandidateOrAssigned(userId)
+				.orderByTaskId().desc().listPage(taskPager.getFirstResult().intValue(), taskPager.getMaxResult().intValue());
+		for (Task task : taskList) 
+			taskDtoList.add(TaskDto.tranEntityToDto(task));
+		
+		taskPager.setTotalRecords(count);
+		taskPager.setRecords(taskDtoList);
+		taskPager.setTotalPage(taskPager.getTotalPages());
+		return taskPager;
+	}
+
+
+	/**
+	 * 根据类型查询流程实例页面
+	 * @param type(type==1，查询所有的流程实例；type==2；查询正在运行的流程实例)
+	 * @param currPage当前页
+	 * @param pageSize每页的记录条数
+	 * @return
+	 */
+	@Override
+	public PagerInfo<ProcessInstanceDto> queryWorkflowInstPager(String processDefKey, 
+			String type, long currPage, long pageSize) {
+		PagerInfo<ProcessInstanceDto> processInstancePager = new PagerInfo<ProcessInstanceDto>();
+		processInstancePager.setCurrentPage(currPage);
+		processInstancePager.setPageSize(pageSize);
+		long count = getWorkflowInstCount(processDefKey, type);
+		List<ProcessInstanceDto> processInstanceDtoList = getWorkflowInstList(processDefKey, type, 
+				processInstancePager.getFirstResult().intValue(), processInstancePager.getMaxResult().intValue());
+		processInstancePager.setTotalRecords(count);
+		processInstancePager.setRecords(processInstanceDtoList);
+		processInstancePager.setTotalPage(processInstancePager.getTotalPages());
+		return processInstancePager;
+	}
+	
+	/**
+	 * 根据类型获取流程实例的条数
+	 * @param type(type==1,所有的流程实例;type==2,正在运行的流程实例)
+	 * @return
+	 */
+	public long getWorkflowInstCount(String processDefKey, String type){
+		long count = 0;
+		if(type.equals("1"))//所有的流程实例
+			count = historyService.createHistoricProcessInstanceQuery().processDefinitionKey(processDefKey).count();
+		else if(type.equals("2"))//正在运行的流程实例
+			count = runtimeService.createProcessInstanceQuery().processDefinitionKey(processDefKey).count();
+		return count;
+	}
+
+	/**
+	 * 根据类型获取当前页的流程实例列表
+	 * @param type(type==1，所有的流程实例；type==2，正在运行的流程实例)
+	 * @param firstResult第一条
+	 * @param maxResult最后一条
+	 * @return
+	 */
+	public List<ProcessInstanceDto> getWorkflowInstList(String processDefKey, String type,
+			int firstResult, int maxResult) {
+		List<ProcessInstanceDto> processInstanceDtoList = new ArrayList<ProcessInstanceDto>();
+		if(type.equals("1")){//所有的流程实例
+			List<HistoricProcessInstance> processInstanceList = historyService.createHistoricProcessInstanceQuery()
+					.orderByProcessInstanceStartTime().desc().processDefinitionKey(processDefKey).listPage(firstResult, maxResult);
+			for (HistoricProcessInstance historicProcessInstance : processInstanceList)
+				processInstanceDtoList.add(ProcessInstanceDto.transHisToDto(historicProcessInstance));
+		}else if(type.equals("2")){//正在运行的流程实例
+			List<ProcessInstance> processInstanceList = runtimeService.createProcessInstanceQuery()
+					.processDefinitionKey(processDefKey).orderByProcessInstanceId().desc().listPage(firstResult, maxResult);
+			for (ProcessInstance processInstance : processInstanceList) 
+				processInstanceDtoList.add(ProcessInstanceDto.transEntityToDto(processInstance));
+		}
+		return processInstanceDtoList;
+	}
+
+
+	@Override
+	public void receiveTask(String userId, String taskId) {
+		taskService.claim(taskId, userId);
+	}
+	
 }
