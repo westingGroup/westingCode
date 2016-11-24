@@ -1,0 +1,522 @@
+@CHARSET "UTF-8";
+
+html {
+	height: 100%;
+}
+
+body {
+	font-size: 12px;
+	font-family: "Microsoft YaHei", "黑体";
+	height: 100%;
+}
+
+/*标题头和标题下的表格*/
+.linklist {
+	margin-top: 15px;
+	margin-bottom: 15px;
+}
+
+.linktit {
+	color: #385877;
+	font-size: 13px;
+	font-weight: bold;
+	background: url("../../img/common/tip.png") left center no-repeat;
+	border-bottom: 1px dotted #b8b8b8;
+	margin-bottom: 10px;
+	padding-left: 22px;
+}
+
+.linktit_notes {
+	color: #eb4f38;
+	font-size: 13px;
+	font-weight: bold;
+	background: url("../../img/common/notes.png") left center no-repeat;
+	border-bottom: 1px dotted #b8b8b8;
+	margin-bottom: 10px;
+	padding-left: 22px;
+}
+
+.linklist table {
+	text-align: center;
+}
+
+.linklist table th {
+	text-align: center;
+	background: #f1f1f1;
+}
+
+.linklist table td a {
+	margin-left: 6px;
+	cursor: pointer;
+	text-align: center;
+	color: #d63870;
+}
+
+.linklist table td a:hover {
+	color: #ff9934;
+}
+
+.btn-intable {
+	font-family: "Microsoft YaHei", "黑体";
+	border-radius: 0px;
+	height: 20px;
+	background: #1AA5CC !important;
+	color: #fff;
+	line-height: 13px;
+	vertical-align: middle;
+	padding-left: 12px;
+	padding-right: 12px;
+	font-size: 12px;
+}
+
+.btn-intable:focus {
+	background: #1AA5CC !important;
+	color: #fff;
+}
+
+.btn-intable:hover {
+	background: #ff9934 !important;
+	color: #fff;
+}
+
+.btn-intable[disabled], .btn-intable.disabled {
+	background: #e0e0e0 !important;
+}
+
+.btn-main {
+	font-family: "Microsoft YaHei", "黑体";
+	border-radius: 0px;
+	//background: #385877 !important;
+	color: #fff;
+	line-height: 13px;
+	vertical-align: middle;
+	padding-left: 12px;
+	padding-right: 12px;
+	font-size: 12px;
+	width: 116px;
+	height: 40px;
+	background-image: url(
+						../../img/u383.png) !important;
+	background-color: #fff !important;
+	border: 0px;
+}
+
+.btn-main:focus {
+	//background: #385877 !important;
+	color: #fff;
+	background-image: url(
+						../../img/u383.png) !important;
+	background-color: #fff !important;
+}
+
+.btn-main:hover {
+	//background: #ff9934 !important;
+	color: #fff;
+	background-image: url(
+						../../img/u387.png) !important;
+	background-color: #fff !important;
+}
+
+.btn-main[disabled], .btn-main.disabled {
+	background: #e0e0e0 !important;
+}
+
+.btn-main img {
+	margin-right: 5px;
+	margin-bottom: 2px;
+}
+
+/*tab页*/
+.add_head {
+	padding-left: 14px;
+	height: 28px;
+}
+
+.add_head a {
+	width: 90px;
+	height: 28px;
+	float: left;
+	text-align: center;
+	font-weight: bold;
+	line-height: 28px;
+	background: #d8d8d8;
+	font-size: 13px;
+	color: #6b6b6b;
+	display: block;
+	margin-right: 4px;
+}
+
+.add_head a:hover {
+	background: #ff9934;
+	color: #fff;
+	text-decoration: none;
+}
+
+.add_head .current {
+	background: #ff9934;
+	color: #fff;
+}
+
+.tab_search {
+	background: #fff;
+	padding: 15px 15px 5px 15px;
+	border-top: 1px solid #d8d8d8;
+}
+
+.tab_hidden {
+	display: none;
+}
+
+.tab_view {
+	display: block;
+}
+
+.searchTable {
+	width: 100%;
+	border: 0;
+}
+
+.searchTable td {
+	height: 36px;
+}
+
+.searchTable td a {
+	height: 26px;
+	display: block;
+	width: 90px;
+	line-height: 26px;
+	text-align: center;
+	color: #fff;
+	background: #385877;
+}
+
+.searchTable td a:hover {
+	background: #ff9934;
+}
+
+.searchTable select {
+	height: 26px;
+	width: 135px;
+	border: 1px solid #d4d4d4;
+}
+
+.searchTable .left {
+	text-align: right;
+}
+
+.searchTable .right {
+	text-align: left;
+}
+
+.table>thead>tr>th, .table>tbody>tr>td {
+	padding: 6px 8px;
+}
+
+.table>thead>tr>th {
+	font-size: 12px;
+}
+
+.table>tbody>tr>td {
+	text-align: center;
+}
+
+.table .leftAlign {
+	text-align: left;
+}
+
+.table .rightAlign {
+	text-align: right;
+}
+
+/*tab页*/
+.add_head_child {
+	padding-left: 14px;
+	height: 28px;
+}
+
+.add_head_child a {
+	width: 90px;
+	height: 28px;
+	float: left;
+	text-align: center;
+	font-weight: bold;
+	line-height: 28px;
+	background: #d8d8d8;
+	font-size: 13px;
+	color: #6b6b6b;
+	display: block;
+	margin-right: 4px;
+}
+
+.add_head_child a:hover {
+	background: #ff9934;
+	color: #fff;
+	text-decoration: none;
+}
+
+.add_head_child .current_child {
+	background: #ff9934;
+	color: #fff;
+}
+
+.tab_search_child {
+	background: #fff;
+	padding: 15px 15px 5px 15px;
+	border-top: 1px solid #d8d8d8;
+}
+
+.tab_hidden_child {
+	display: none;
+}
+
+/*分页*/
+.pages {
+	background: #f1f1f1;
+}
+
+.pagination ul>li {
+	display: inline;
+}
+
+.pagination ul {
+	display: inline-block;
+	margin-bottom: 0;
+	margin-left: 0;
+	border-radius: 4px;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+ul, ol {
+	margin: -20px 0 10px 25px;
+}
+
+.pagination ul>li>a, .pagination ul>li>span {
+	float: left;
+	padding: 4px 12px;
+	line-height: 20px;
+	text-decoration: none;
+	border: 1px solid #ddd;
+	color: #2a6496;
+}
+
+.pagination ul>li:first-child>a, .pagination ul>li:first-child>span {
+	border-left-width: 1px;
+	border-bottom-left-radius: 4px;
+	border-top-left-radius: 4px;
+}
+
+.pagination ul>.disabled>span, .pagination ul>.disabled>a, .pagination ul>.disabled>a:hover,
+	.pagination ul>.disabled>a:focus {
+	color: #999;
+	cursor: default;
+}
+
+.row-fluid [class*="span"]:first-child {
+	margin-left: 0;
+}
+
+.modalWinTable td {
+	padding: 8px;
+}
+
+button::-moz-focus-inner, input[type=”button”]::-moz-focus-inner {
+	border: 0; /*去虚线框*/;
+	padding: 0;
+}
+
+/*file设为透明，并覆盖整个触发面*/
+.uploadFile {
+	font-size: 9px;
+	cursor: pointer;
+	filter: alpha(opacity = 0);
+	-moz-opacity: 0;
+	-khtml-opacity: 0;
+	opacity: 0;
+	position: relative;
+	left: -97px;
+	width: 48px;
+	height: 25px;
+	float: right;
+}
+
+.tdcolor {
+	color: #808080;
+}
+
+h4 {
+	font-size: 13px;
+}
+
+.modalTipDiv {
+	text-align: left;
+	display: none;
+	position: absolute;
+	float: left;
+	height: 25px;
+	width: 80%;
+	padding: 5px 0px 0px 5px;
+	font-weight: bold;
+}
+/*翻页*/
+.mouseoverPageUpAndDown {
+	cursor: pointer;
+}
+/*机型span定宽*/
+.modelSpanBlock {
+	width: 100px;
+	display: inline-block
+}
+
+.uploadFormMM {
+	position: relative;
+	top: 15px;
+}
+
+.uploadFileMA {
+	font-size: 12PX;
+	cursor: pointer;
+	position: relative;
+	left: 136px;
+	top: -25px;
+	width: 64px;
+	filter: alpha(opacity = 0);
+	-moz-opacity: 0;
+	-khtml-opacity: 0;
+	opacity: 0;
+}
+
+.uploadFormUP {
+	position: relative;
+	top: 0px;
+}
+
+.uploadFileUP {
+	font-size: 5PX;
+	cursor: pointer;
+	position: relative;
+	left: 85px;
+	top: -19px;
+	width: 16px;
+	filter: alpha(opacity = 0);
+	-moz-opacity: 0;
+	-khtml-opacity: 0;
+	opacity: 0.1;
+}
+
+.titleHr{
+	margin-top: 0px;
+	margin-bottom: 0px;
+	border: 0;
+	border-top: 2px solid #eee;
+	width: 98%;
+}
+
+.aLeft {
+	text-align: left !important;
+}
+
+.aright {
+	text-align: right !important;
+}
+
+.linklist table th {
+	background: #5a94ce;
+	color: white;
+}
+
+h4 {
+	font-weight: bold;
+}
+
+/**ellipse多余的内容用省略号来替换*/
+.ellipse{
+	display: block;
+	overflow:hidden;
+	white-space:nowrap;
+	text-overflow:ellipsis;
+
+}
+/* .addRow {
+	background-image: url(
+						../../images/u367.png) !important;
+	background-color: #fff !important;
+	width: 113px;
+	height: 26px;
+	color: #1565c0;
+} */
+
+/**提示信息*/
+.bs-callout {
+	margin: 0 0 10px 0;
+	border-radius: 126px !important;
+	background-color: #eef7fc;
+	margin-top: 10px;
+	float: right;
+	width: 450px;
+	margin-right: 50px;
+}
+
+/**tab页*/
+.add_head {
+	padding: 0px;
+	margin-left: 14px;
+	border-bottom: 1px solid #d8d8d8;
+	width: 96%;
+}
+
+.add_head a {
+	background: #fff;
+	color: #999999;
+	height: 27px;
+	text-decoration: none;
+	font-weight: 100;
+}
+
+.add_head .current {
+	background: #fff;
+	color: black;
+	border-top: 3px solid #d74635;
+	border-left: 1px solid #d8d8d8;
+	border-right: 1px solid #d8d8d8;
+	border-bottom: 1px solid white;
+	height: 28px;
+	border-left: 1px solid #d8d8d8;
+}
+
+.collegeData {
+	background-color: #eef7fc;
+	line-height: 40px;
+	font-weight: 100;
+}
+
+.textBlue {
+	color: #1d88e5
+}
+
+.addRow {
+	background-image: url(
+						../../images/u367.png) !important;
+	background-color: #fff !important;
+	width: 113px;
+	height: 26px;
+	color: #1565c0;
+}
+
+/* 上传form样式 */
+.uploadFormWo {
+	position: relative;
+	top: 12px;
+}
+/* 上传file样式 */
+.uploadFileWo {
+	font-size: 17PX;
+	cursor: pointer;
+	position: relative;
+	left: 2px;
+	top: -26px;
+	width: 256px;
+	filter: alpha(opacity = 0);
+	-moz-opacity: 0;
+	-khtml-opacity: 0;
+	opacity: 0;
+}
